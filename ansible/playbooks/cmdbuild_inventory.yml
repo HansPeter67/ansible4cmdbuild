@@ -1,0 +1,30 @@
+---
+- name: Collect inventory data for CMDBuild
+  hosts: all
+  gather_facts: true
+  become: false
+
+  vars:
+    cmdbuild_export_dir: /tmp/cmdbuild-export
+
+  pre_tasks:
+    - name: Ensure export directory exists on control node
+      delegate_to: localhost
+      run_once: true
+      ansible.builtin.file:
+        path: "{{ cmdbuild_export_dir }}"
+        state: directory
+        mode: "0755"
+
+  tasks:
+    - name: Collect host facts and prepare CMDBuild payload
+      ansible.builtin.include_tasks: "../tasks/collect_facts.yml"
+
+  post_tasks:
+    - name: Write collected inventory to JSON on control node
+      delegate_to: localhost
+      run_once: true
+      ansible.builtin.copy:
+        dest: "{{ cmdbuild_export_dir }}/inventory-{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}.json"
+        content: "{{ cmdbuild_inventory | to_nice_json }}"
+        mode: "0644"
