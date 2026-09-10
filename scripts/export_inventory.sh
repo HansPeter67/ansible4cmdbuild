@@ -12,10 +12,13 @@ log() {
 
 log "Exporting inventory files to $OUTPUT_DIR"
 
+# Start from a clean staging directory so no old host files remain.
+find "$OUTPUT_DIR" -maxdepth 1 -type f -name '*.json' -delete
+
 ansible-playbook \
   "$ROOT_DIR/ansible/playbooks/cmdbuild_inventory.yml" \
   -i "$ROOT_DIR/ansible/inventory.ini" \
   --extra-vars "cmdbuild_export_dir=$OUTPUT_DIR"
 
-count="$(find "$OUTPUT_DIR" -maxdepth 1 -name '*.json' | wc -l | tr -d ' ')"
+count="$(find "$OUTPUT_DIR" -maxdepth 1 -type f -name '*.json' | wc -l | tr -d ' ')"
 log "Inventory export complete. JSON files written: $count"

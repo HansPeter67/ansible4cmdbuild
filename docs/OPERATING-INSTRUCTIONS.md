@@ -67,6 +67,7 @@ What it does:
 - runs `ansible-playbook`
 - gathers host facts
 - writes one JSON file per host into `out/`
+- removes any older staged JSON files before export
 - prints the export location
 
 Typical output files:
@@ -112,6 +113,8 @@ What it does:
 - loads `config/cmdbuild.env`
 - builds a CMDBuild payload
 - sends the JSON to CMDBuild
+- if all syncs succeed, removes the staged JSON files afterward
+- if a sync fails, keeps the staged JSON files for investigation
 - honors dry-run mode if enabled
 
 ## 7. Dry-run mode
@@ -129,7 +132,7 @@ This prints the payload instead of sending it.
 
 ### Cron example
 
-Run export every night at 02:00:
+Run export and sync every night at 02:00:
 
 ```cron
 0 2 * * * /path/to/ansible4cmdbuild/scripts/export_and_sync.sh >> /var/log/cmdbuild-export.log 2>&1
