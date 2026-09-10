@@ -20,7 +20,7 @@ Optional but recommended:
 You also need:
 
 - a reachable CMDBuild instance
-- a valid CMDBuild API token
+- a CMDBuild username and password
 - SSH or WinRM access to the managed hosts
 
 ## 2. Configure Ansible inventory
@@ -43,8 +43,9 @@ Edit `ansible/inventory.ini` and set:
 Edit `config/cmdbuild.env` and set at least:
 
 - `CMDBUILD_BASE_URL`
-- `CMDBUILD_API_PATH`
-- `CMDBUILD_TOKEN`
+- `CMDBUILD_SCOPE`
+- `CMDBUILD_USERNAME`
+- `CMDBUILD_PASSWORD`
 - `CMDBUILD_CLASS_NAME`
 - `CMDBUILD_UNIQUE_KEY`
 
@@ -111,8 +112,9 @@ Or run the wrapper to sync all generated JSON files:
 What it does:
 
 - loads `config/cmdbuild.env`
-- builds a CMDBuild payload
-- sends the JSON to CMDBuild
+- logs in to CMDBuild with username/password
+- extracts the `sessionId` from the login response
+- sends requests with the `Cmdbuild-authorization` header
 - if all syncs succeed, removes the staged JSON files afterward
 - if a sync fails, keeps the staged JSON files for investigation
 - honors dry-run mode if enabled
@@ -168,9 +170,10 @@ Check:
 
 Check:
 
-- `CMDBUILD_TOKEN`
+- `CMDBUILD_USERNAME`
+- `CMDBUILD_PASSWORD`
 - `CMDBUILD_BASE_URL`
-- CMDBuild API path
+- CMDBuild scope and API path
 - `curl` and `jq` availability
 - whether the target endpoint exists in your CMDBuild setup
 
@@ -185,7 +188,7 @@ Check:
 ## 11. Security notes
 
 - do not commit secrets into the repository
-- store tokens in a secure secret manager if possible
+- store credentials in a secure secret manager if possible
 - prefer HTTPS
-- restrict write access to the CMDBuild API token
+- restrict write access to the CMDBuild credentials
 - use least privilege for Ansible access

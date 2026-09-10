@@ -32,6 +32,6 @@ This project collects host inventory data with Ansible, stores it temporarily as
 
 ## Notes
 
-- Keep `CMDBUILD_TOKEN` private.
+- Keep `CMDBUILD_USERNAME` and `CMDBUILD_PASSWORD` private.
 - Use HTTPS for CMDBuild.
 - Start with `CMDBUILD_DRY_RUN=true` when testing.
