@@ -17,14 +17,28 @@
         mode: "0755"
 
   tasks:
-    - name: Collect host facts and prepare CMDBuild payload
-      ansible.builtin.include_tasks: "../tasks/collect_facts.yml"
+    - name: Build CMDBuild inventory payload for this host
+      ansible.builtin.set_fact:
+        cmdbuild_inventory:
+          hostname: "{{ ansible_facts.hostname | default(inventory_hostname) }}"
+          fqdn: "{{ ansible_facts.fqdn | default('') }}"
+          os_family: "{{ ansible_facts.os_family | default('') }}"
+          distribution: "{{ ansible_facts.distribution | default('') }}"
+          distribution_version: "{{ ansible_facts.distribution_version | default('') }}"
+          kernel: "{{ ansible_facts.kernel | default('') }}"
+          architecture: "{{ ansible_facts.architecture | default('') }}"
+          ipv4_addresses: "{{ ansible_facts.all_ipv4_addresses | default([]) }}"
+          mac_addresses: "{{ ansible_facts.interfaces | default([]) }}"
+          cpu_count: "{{ ansible_facts.processor_vcpus | default(ansible_facts.processor_count | default(0)) }}"
+          memory_mb: "{{ ansible_facts.memtotal_mb | default(0) }}"
+          ansible_host: "{{ ansible_host | default(inventory_hostname) }}"
+          last_collected_at: "{{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}"
+          source: "ansible"
+          status: "active"
 
-  post_tasks:
-    - name: Write collected inventory to JSON on control node
+    - name: Write host inventory JSON on control node
       delegate_to: localhost
-      run_once: true
       ansible.builtin.copy:
-        dest: "{{ cmdbuild_export_dir }}/inventory-{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}.json"
+        dest: "{{ cmdbuild_export_dir }}/{{ inventory_hostname }}.json"
         content: "{{ cmdbuild_inventory | to_nice_json }}"
         mode: "0644"

@@ -4,7 +4,7 @@ Ansible-based inventory sync for CMDBuild.
 
 ## What this repository does
 
-This project collects host inventory data with Ansible, stores it as JSON on the control node, and then sends that JSON to CMDBuild using Bash scripts.
+This project collects host inventory data with Ansible, stores it as JSON files on the control node, and then sends those JSON files to CMDBuild using Bash scripts.
 
 ## Repository layout
 
@@ -21,9 +21,9 @@ This project collects host inventory data with Ansible, stores it as JSON on the
    ```bash
    ./scripts/export_inventory.sh
    ```
-4. Sync the latest inventory file into CMDBuild:
+4. Sync one of the generated inventory files into CMDBuild:
    ```bash
-   ./scripts/sync_to_cmdbuild.sh out/inventory-YYYYMMDDHHMMSS.json
+   ./scripts/sync_to_cmdbuild.sh out/server1.example.com.json
    ```
 
 ## Notes
