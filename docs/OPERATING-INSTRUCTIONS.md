@@ -66,21 +66,22 @@ What it does:
 
 - runs `ansible-playbook`
 - gathers host facts
-- writes a JSON snapshot into `out/`
-- prints the newest generated inventory file
+- writes one JSON file per host into `out/`
+- prints the export location
 
-Typical output file:
+Typical output files:
 
 ```text
-out/inventory-20260910094500.json
+out/server1.example.com.json
+out/server2.example.com.json
 ```
 
 ## 5. Review the generated inventory
 
-Inspect the JSON before syncing:
+Inspect a JSON file before syncing:
 
 ```bash
-jq . out/inventory-*.json
+jq . out/server1.example.com.json
 ```
 
 Check that the data contains the expected fields such as:
@@ -97,7 +98,13 @@ Check that the data contains the expected fields such as:
 Run the sync script with the JSON file:
 
 ```bash
-./scripts/sync_to_cmdbuild.sh out/inventory-20260910094500.json
+./scripts/sync_to_cmdbuild.sh out/server1.example.com.json
+```
+
+Or run the wrapper to sync all generated JSON files:
+
+```bash
+./scripts/export_and_sync.sh
 ```
 
 What it does:
@@ -113,7 +120,7 @@ To test without sending data:
 
 ```bash
 export CMDBUILD_DRY_RUN=true
-./scripts/sync_to_cmdbuild.sh out/inventory-20260910094500.json
+./scripts/sync_to_cmdbuild.sh out/server1.example.com.json
 ```
 
 This prints the payload instead of sending it.
@@ -125,16 +132,14 @@ This prints the payload instead of sending it.
 Run export every night at 02:00:
 
 ```cron
-0 2 * * * /path/to/ansible4cmdbuild/scripts/export_inventory.sh >> /var/log/cmdbuild-export.log 2>&1
+0 2 * * * /path/to/ansible4cmdbuild/scripts/export_and_sync.sh >> /var/log/cmdbuild-export.log 2>&1
 ```
-
-Then sync afterward with a second scheduled job or a wrapper script.
 
 ### Systemd timer approach
 
 You can also create:
 
-- a service to run the export script
+- a service to run the wrapper script
 - a timer to trigger it on schedule
 
 ## 9. Recommended operating flow
