@@ -25,6 +25,10 @@ This project collects host inventory data with Ansible, stores it as JSON files 
    ```bash
    ./scripts/sync_to_cmdbuild.sh out/server1.example.com.json
    ```
+5. Or run export + sync for all files in one command:
+   ```bash
+   ./scripts/export_and_sync.sh
+   ```
 
 ## Notes
 

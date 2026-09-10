@@ -101,6 +101,12 @@ Run the sync script with the JSON file:
 ./scripts/sync_to_cmdbuild.sh out/server1.example.com.json
 ```
 
+Or run the wrapper to sync all generated JSON files:
+
+```bash
+./scripts/export_and_sync.sh
+```
+
 What it does:
 
 - loads `config/cmdbuild.env`
@@ -126,16 +132,14 @@ This prints the payload instead of sending it.
 Run export every night at 02:00:
 
 ```cron
-0 2 * * * /path/to/ansible4cmdbuild/scripts/export_inventory.sh >> /var/log/cmdbuild-export.log 2>&1
+0 2 * * * /path/to/ansible4cmdbuild/scripts/export_and_sync.sh >> /var/log/cmdbuild-export.log 2>&1
 ```
-
-Then sync afterward with a second scheduled job or a wrapper script.
 
 ### Systemd timer approach
 
 You can also create:
 
-- a service to run the export script
+- a service to run the wrapper script
 - a timer to trigger it on schedule
 
 ## 9. Recommended operating flow
