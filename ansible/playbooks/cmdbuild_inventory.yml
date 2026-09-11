@@ -32,13 +32,13 @@
           cpu_count: "{{ ansible_facts.processor_vcpus | default(ansible_facts.processor_count | default(0)) }}"
           memory_mb: "{{ ansible_facts.memtotal_mb | default(0) }}"
           disk_total_bytes: >-
-            {{
-              ansible_facts.mounts
-              | default([])
-              | map(attribute='size_total')
-              | map('int')
-              | sum
-            }}
+            {%- set ns = namespace(total=0) -%}
+            {%- for device in ansible_facts.devices | default({}) | dict2items -%}
+            {%-   if device.key is not match('^(loop|ram|fd|sr|dm-|md|zd|nbd)') -%}
+            {%-     set ns.total = ns.total + ((device.value.sectors | default(0) | int) * (device.value.sectorsize | default(0) | int)) -%}
+            {%-   endif -%}
+            {%- endfor -%}
+            {{ ns.total }}
           ansible_host: "{{ ansible_host | default(inventory_hostname) }}"
           last_collected_at: "{{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}"
           source: "ansible"
