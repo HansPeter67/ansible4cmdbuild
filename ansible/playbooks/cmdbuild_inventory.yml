@@ -31,6 +31,14 @@
           mac_addresses: "{{ ansible_facts.interfaces | default([]) }}"
           cpu_count: "{{ ansible_facts.processor_vcpus | default(ansible_facts.processor_count | default(0)) }}"
           memory_mb: "{{ ansible_facts.memtotal_mb | default(0) }}"
+          disk_total_bytes: >-
+            {{
+              ansible_facts.mounts
+              | default([])
+              | map(attribute='size_total')
+              | map('int')
+              | sum
+            }}
           ansible_host: "{{ ansible_host | default(inventory_hostname) }}"
           last_collected_at: "{{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}"
           source: "ansible"
