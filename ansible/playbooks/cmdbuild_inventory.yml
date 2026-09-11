@@ -18,23 +18,7 @@
 
   tasks:
     - name: Build CMDBuild inventory payload for this host
-      ansible.builtin.set_fact:
-        cmdbuild_inventory:
-          hostname: "{{ ansible_facts.hostname | default(inventory_hostname) }}"
-          fqdn: "{{ ansible_facts.fqdn | default('') }}"
-          os_family: "{{ ansible_facts.os_family | default('') }}"
-          distribution: "{{ ansible_facts.distribution | default('') }}"
-          distribution_version: "{{ ansible_facts.distribution_version | default('') }}"
-          kernel: "{{ ansible_facts.kernel | default('') }}"
-          architecture: "{{ ansible_facts.architecture | default('') }}"
-          ipv4_addresses: "{{ ansible_facts.all_ipv4_addresses | default([]) }}"
-          mac_addresses: "{{ ansible_facts.interfaces | default([]) }}"
-          cpu_count: "{{ ansible_facts.processor_vcpus | default(ansible_facts.processor_count | default(0)) }}"
-          memory_mb: "{{ ansible_facts.memtotal_mb | default(0) }}"
-          ansible_host: "{{ ansible_host | default(inventory_hostname) }}"
-          last_collected_at: "{{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}"
-          source: "ansible"
-          status: "active"
+      ansible.builtin.import_tasks: ../tasks/collect_facts.yml
 
     - name: Write host inventory JSON on control node
       delegate_to: localhost
