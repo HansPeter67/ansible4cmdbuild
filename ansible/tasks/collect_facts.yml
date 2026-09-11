@@ -1,4 +1,18 @@
 ---
+- name: Initialize CMDBuild network interface mapping
+  ansible.builtin.set_fact:
+    cmdbuild_network_interfaces: {}
+
+- name: Collect CMDBuild network interface MAC addresses
+  ansible.builtin.set_fact:
+    cmdbuild_network_interfaces: >-
+      {{
+        cmdbuild_network_interfaces | combine({
+          item: ansible_facts.get(item, {}).get('macaddress', '')
+        })
+      }}
+  loop: "{{ ansible_facts.interfaces | default([]) }}"
+
 - name: Initialize CMDBuild inventory structure
   ansible.builtin.set_fact:
     cmdbuild_inventory:
@@ -10,7 +24,9 @@
       kernel: "{{ ansible_facts.kernel | default('') }}"
       architecture: "{{ ansible_facts.architecture | default('') }}"
       ipv4_addresses: "{{ ansible_facts.all_ipv4_addresses | default([]) }}"
-      mac_addresses: "{{ ansible_facts.all_ipv6_addresses | default([]) }}"
+      interfaces: "{{ ansible_facts.interfaces | default([]) }}"
+      mac_addresses: "{{ cmdbuild_network_interfaces | dict2items | map(attribute='value') | reject('equalto', '') | list }}"
+      network_interfaces: "{{ cmdbuild_network_interfaces }}"
       cpu_count: "{{ ansible_facts.processor_vcpus | default(ansible_facts.processor_count | default(0)) }}"
       memory_mb: "{{ ansible_facts.memtotal_mb | default(0) }}"
       ansible_host: "{{ ansible_host | default(inventory_hostname) }}"
