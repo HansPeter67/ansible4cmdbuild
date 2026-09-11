@@ -17,6 +17,23 @@
         mode: "0755"
 
   tasks:
+    - name: Collect LVM physical volume sizes
+      ansible.builtin.command:
+        argv:
+          - pvdisplay
+          - --readonly
+          - --nolocking
+          - -C
+          - --noheadings
+          - --units
+          - b
+          - --nosuffix
+          - -o
+          - pv_size
+      register: cmdbuild_pvdisplay
+      changed_when: false
+      failed_when: false
+
     - name: Build CMDBuild inventory payload for this host
       ansible.builtin.set_fact:
         cmdbuild_inventory:
@@ -31,6 +48,38 @@
           mac_addresses: "{{ ansible_facts.interfaces | default([]) }}"
           cpu_count: "{{ ansible_facts.processor_vcpus | default(ansible_facts.processor_count | default(0)) }}"
           memory_mb: "{{ ansible_facts.memtotal_mb | default(0) }}"
+          disk_total_bytes: >-
+            {%- set ns = namespace(total=0) -%}
+            {%- if (cmdbuild_pvdisplay.rc | default(1)) == 0 and (cmdbuild_pvdisplay.stdout | default('') | trim) != '' -%}
+            {{
+              (
+                cmdbuild_pvdisplay.stdout_lines
+                | default([])
+                | map('trim')
+                | reject('equalto', '')
+                | map('regex_replace', '^<', '')
+                | map('regex_replace', '\..*$', '')
+                | map('int')
+                | sum
+              )
+              +
+              (
+                ansible_facts.mounts
+                | default([])
+                | selectattr('mount', 'match', '^/boot(/|$)')
+                | map(attribute='size_total')
+                | map('int')
+                | sum
+              )
+            }}
+            {%- else -%}
+            {%-   for device in ansible_facts.devices | default({}) | dict2items -%}
+            {%-     if device.key is not match('^(loop|ram|fd|sr|dm-|md|zd|nbd)') -%}
+            {%-       set ns.total = ns.total + ((device.value.sectors | default(0) | int) * (device.value.sectorsize | default(0) | int)) -%}
+            {%-     endif -%}
+            {%-   endfor -%}
+            {{ ns.total }}
+            {%- endif -%}
           ansible_host: "{{ ansible_host | default(inventory_hostname) }}"
           last_collected_at: "{{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}"
           source: "ansible"
